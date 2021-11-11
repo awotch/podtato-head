@@ -24,18 +24,19 @@ You will need
 Export your GitHub personal access token and username:
 
 ```
-$ export GITHUB_TOKEN=<your-token>
-$ export GITHUB_USER=<your-username>
+export GITHUB_TOKEN=<your-token>
+export GITHUB_USER=<your-username>
 ```
 
 Run the bootstrap command:
 
 ```
-$ flux bootstrap github \
+flux bootstrap github \
   --owner=$GITHUB_USER \
   --repository=podtato-test \
   --personal \
-  --private=false
+  --private=false \
+  --token-auth
 ```
 
 The bootstrap command creates a repository if one doesn't exist, commits manifests for Flux Components to the default branch, and installs the flux components. Then it configures the target cluster to synchronize with the repository.
@@ -47,8 +48,8 @@ We are going to drive app deployments in a GitOps manner, using the Git reposito
 Therefore, we need to clone the repository to our local machine:
 
 ```
-$ git clone https://github.com/$GITHUB_USER/podtato-test
-$ cd podtato-test
+git clone https://github.com/$GITHUB_USER/podtato-test
+cd podtato-test
 ```
 
 ### Adding Podtato repository to Flux
@@ -82,20 +83,19 @@ spec:
 Commit and push the manifest to the `podtato-test` repository:
 
 ```
-$ git add helloservice-source.yaml 
-$ git commit -m "Add GitRepository Source for helloservice"
-$ git push
+git add helloservice-source.yaml 
+git commit -m "Add GitRepository Source for helloservice"
+git push
 ```
 
 ### Deploying helloservice
 
 We will create a Flux Kustomization manifest for helloservice. This configures Flux to build and apply the [manifest][5] directory located in the podtato-head repository.
 ```
-$ flux create kustomization helloservice \
+flux create kustomization helloservice \
 --source=helloservice \
---path="./delivery/manifest" \
+--path="./delivery/kubectl" \
 --prune=true \
---validation=client \
 --interval=5m \
 --export > ./helloservice-kustomization.yaml
 ```
@@ -111,7 +111,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 5m0s
-  path: ./delivery/manifest
+  path: ./delivery/kubectl
   prune: true
   sourceRef:
     kind: GitRepository
@@ -122,9 +122,9 @@ spec:
 Commit and push the Kustomization manifest to the repository:
 
 ```
-$ git add helloservice-kustomization.yaml 
-$ git commit -m "Add helloservice Kustomization"
-$ git push
+git add helloservice-kustomization.yaml 
+git commit -m "Add helloservice Kustomization"
+git push
 ```
 
 The structure of your repository should look like this
@@ -144,7 +144,7 @@ The structure of your repository should look like this
 In about 30s the synchronization should start:
 
 ```
-$ watch flux get kustomizations
+watch flux get kustomizations
 NAME            READY   MESSAGE                                                         REVISION                                        SUSPENDED 
 flux-system     True    Applied revision: main/4c2a9d272176a36fec9acf9eab75447410fe5573 main/4c2a9d272176a36fec9acf9eab75447410fe5573   False    
 helloservice    True    Applied revision: main/0e3e9cffa177185c57d01d9bc067950dce221c7c main/0e3e9cffa177185c57d01d9bc067950dce221c7c   False    
@@ -153,7 +153,7 @@ helloservice    True    Applied revision: main/0e3e9cffa177185c57d01d9bc067950dc
 When the synchronization finishes you can check that helloservice has been deployed on your cluster:
 
 ```
-$ kubectl -n demospace get deployments,services 
+kubectl -n podtato-kubectl get deployments,services 
 NAME                           READY   UP-TO-DATE   AVAILABLE   AGE
 deployment.apps/helloservice   1/1     1            1           40m
 
