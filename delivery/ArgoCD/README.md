@@ -28,6 +28,26 @@ Please follow the rest of the documentation to
 - [expose your the ArgoCD UI](https://argoproj.github.io/argo-cd/getting_started/#3-access-the-argo-cd-api-server)
 - [get access](https://argoproj.github.io/argo-cd/getting_started/#4-login-using-the-cli) by retrieving the password
 
+TL;DR :
+
+```bash
+# Get initial admin password
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d && echo
+# Login with the CLI
+argocd login --insecure --grpc-web --port-forward --port-forward-namespace argocd
+# Username: admin
+# Password: <the one you just retrieved>
+
+# Update password
+argocd account update-password --insecure --grpc-web --port-forward --port-forward-namespace argocd
+
+# Access to the UI (open a new terminal to enter this command to avoid being distrubed by outputs)
+kubectl -n argocd port-forward --address 0.0.0.0 svc/argocd-server 8082:80 &
+
+# Open UI at http://<uid>.int.be.continental.cloud:8082
+# Login with the new credentials
+```
+
 ### Fork the podtato-head project
 
 This example modifies files within the repository, so you will need your own
@@ -63,7 +83,7 @@ have ArgoCD take care of namespace management.
 #### Setting the Github repo
 
 Use the Github repo you forked before and ensure you set the path to ```
-delivery/charts/podtatoserver```. This will use the Helm of the tutorial
+delivery/chart```. This will use the Helm of the tutorial
 
 ![Define GitHub Repo to use](images/argoGithub.png)
 
@@ -104,11 +124,19 @@ will see all application components as healthy.
 
 ![Show deployed application in ArgoCD](images/argoDeployment.png)
 
+Check the application :
+
+```bash
+kubectl port-forward -n podtato-argocd --address 0.0.0.0 svc/podtato-main 8081:9000 &
+
+# App is available at http://<uid>.int.be.continental.cloud:8081
+```
+
 ### Updating the project to a new version
 
 Updating the project required to update the ```values``` file in the
-```/delivery/charts/podtatoserver/``` folder fo your Git
-repository. Change the ```tag``` value to ```v0.1.1```.
+```/delivery/chart``` folder fo your Git
+repository. Change some ```tag``` values to another version (```v2-latest-dev```,```v3-latest-dev```,```v4-latest-dev```).
 
 The application will now show up as ```out of sync```. Simply hit ```sync``` and
 the application should update
