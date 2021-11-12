@@ -79,7 +79,7 @@ and connect through that:
 
 ```
 kubectl port-forward --namespace podtato-kubectl svc/podtato-main 9000:9000 &
-ADDR=127.0.0.1
+ADDR=0.0.0.0
 PORT=9000
 ```
 

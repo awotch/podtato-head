@@ -88,7 +88,7 @@ and connect through that:
 
 ```
 # Choose below the IP address of your machine you want to use to access application 
-ADDR=127.0.0.1
+ADDR=0.0.0.0
 # Choose below the port of your machine you want to use to access application 
 PORT=9000
 kubectl port-forward --address ${ADDR} svc/podtato-main ${PORT}:9000 &
